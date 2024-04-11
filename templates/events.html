@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GitHub Events</title>
+    <style>
+        body {
+            background: linear-gradient(to right, #ff9966, #ff5e62);
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+            background-color: rgb(233, 166, 166);
+            padding: 15px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>GitHub Events</h1>
+    <ul>
+        {% for event in events %}
+        <li>
+            <h4>
+                {% if event.action == 'PUSH' %}
+                {{ event.author }} pushed to {{ event.to_branch }} on {{ event.timestamp }}
+                {% elif event.action == 'PULL_REQUEST' %}
+                {{ event.author }} submitted a pull request from {{ event.from_branch }} to {{ event.to_branch }} on {{ event.timestamp }}
+                {% elif event.action == 'MERGE' %}
+                {{ event.author }} merged branch {{ event.from_branch }} to {{ event.to_branch }} on {{ event.timestamp }}
+                {% else %}
+                Unsupported action
+                {% endif %}
+            </h4>
+        </li>
+        {% endfor %}
+    </ul>
+    <script>
+        window.setInterval(function () {
+            fetch('/events')
+                .then(response => response.json())
+                .then(data => {
+                    let ul = document.querySelector('ul');
+                    ul.innerHTML = '';
+                    data.forEach(event => {
+                        let li = document.createElement('li');
+                        let h4 = document.createElement('h4');
+                        if (event.action === 'PUSH') {
+                            h4.textContent = `${event.author} pushed to ${event.to_branch} on ${event.timestamp}`;
+                        } else if (event.action === 'PULL_REQUEST') {
+                            h4.textContent = `${event.author} submitted a pull request from ${event.from_branch} to ${event.to_branch} on ${event.timestamp}`;
+                        } else if (event.action === 'MERGE') {
+                            h4.textContent = `${event.author} merged branch ${event.from_branch} to ${event.to_branch} on ${event.timestamp}`;
+                        } else {
+                            h4.textContent = 'Unsupported action';
+                        }
+                        li.appendChild(h4);
+                        ul.appendChild(li);
+                    });
+                });
+        }, 15000);
+    </script>
+</body>
+
+</html>
